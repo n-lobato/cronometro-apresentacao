@@ -1,0 +1,18 @@
+web/timer.js: sintaxe aprovada
+web/app.js: sintaxe aprovada
+desktop/main.cjs: sintaxe aprovada
+tests/timer.test.cjs: sintaxe aprovada
+OK inicial
+OK início em timestamp zero
+OK pausa explícita
+OK entrada inválida é atômica
+OK alerta inválido
+OK limites e infinitos
+OK configuração preserva decorrido
+OK excesso
+OK reinício pausado
+OK piso e alerta coerente
+OK teto de duração
+OK formatação
+12 testes de lógica aprovados; sem validação gráfica ou suspensão real.
+Não foram executados testes gráficos, de PiP, de Electron ou suspensão real.

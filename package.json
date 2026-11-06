@@ -1,0 +1,10 @@
+{
+  "name": "cronometro-apresentacao",
+  "version": "0.1.0",
+  "private": true,
+  "main": "desktop/main.cjs",
+  "scripts": {
+    "test": "node tests/timer.test.cjs",
+    "start": "electron ."
+  }
+}

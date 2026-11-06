@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'none'; connect-src 'none'">
+<title>Cronômetro de apresentação</title>
+<style id="theme">
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#0f1218;color:#e8ebf0}
+*{box-sizing:border-box}body{margin:0;padding:20px}main{max-width:850px;margin:auto}
+h1{font-size:1.2rem}button,input{font:inherit;padding:9px;border:1px solid #465167;border-radius:6px;background:#222836;color:inherit}
+button{cursor:pointer}button:focus-visible,input:focus-visible{outline:3px solid #8bb8ff;outline-offset:3px}
+.settings,.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.settings{margin:20px 0}
+input{width:95px}label{display:flex;gap:8px;align-items:center}
+#widget{background:#171b23;border-radius:12px;padding:20px;text-align:center;min-width:260px}
+#count{font:700 clamp(56px,12vw,120px)/1.1 Consolas,monospace;color:#3ddc84;margin:12px 0;font-variant-numeric:tabular-nums}
+#widget[data-state=warning] #count{color:#f5c542}#widget[data-state=critical] #count{color:#ff8a3d}#widget[data-state=over] #count{color:#ff4d4d}
+#widget[data-state=over]{border:2px solid #ff4d4d}.actions{justify-content:center;margin-top:16px}
+#status{letter-spacing:.1em}#details,.help{color:#bbc4d4;font-size:.9rem;line-height:1.6}#message{min-height:2em;color:#f5c542}
+body.pip{padding:0}body.pip #widget{border-radius:0;min-height:100vh}body.pip #count{font-size:clamp(48px,20vw,100px)}
+@media(max-width:400px){body{padding:8px}#widget{padding:10px}.actions{gap:5px}button{padding:7px}}
+</style>
+<script src="timer.js" defer></script>
+<script src="app.js" defer></script>
+</head>
+<body><main>
+<h1>Cronômetro de apresentação</h1>
+<section class="settings" aria-label="Configurações">
+<label>Duração (min) <input id="minutes" type="number" min="1" max="600" step="0.1" value="20"></label>
+<label>Alerta (min) <input id="warning" type="number" min="0" max="120" step="0.1" value="5"></label>
+<button id="apply" type="button">Aplicar</button><button id="pip" type="button">Janela flutuante</button>
+</section>
+<p id="message" role="status" aria-live="polite"></p>
+<div id="home"><section id="widget" data-state="normal" aria-label="Cronômetro">
+<div id="status">PRONTO</div><div id="count" role="timer" aria-label="Tempo restante">20:00</div>
+<div id="details"></div>
+<div class="actions"><button id="toggle" type="button">Iniciar</button><button id="reset" type="button">Reiniciar</button><button id="minus" type="button">−1 min</button><button id="plus" type="button">+1 min</button></div>
+</section></div>
+<p class="help">Espaço: iniciar/pausar. R: reiniciar. + e −: ajustar um minuto. Aplicar preserva o tempo transcorrido; reiniciar zera e deixa pausado. A hora segue o fuso local. Teste a sobreposição com seus slides antes de apresentar. Suspensão e alterações no relógio ainda exigem validação; consulte o README.</p>
+</main></body>
+</html>

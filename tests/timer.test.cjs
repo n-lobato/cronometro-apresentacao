@@ -1,0 +1,25 @@
+const assert = require('node:assert/strict');
+const Timer = require('../web/timer.js');
+let now = 0, count = 0;
+function test(name, fn) {fn(); count++; console.log('OK ' + name);}
+const timer = new Timer(() => now);
+test('inicial', () => assert.equal(timer.remaining(), 1200000));
+timer.toggle(); now = 3000;
+test('início em timestamp zero', () => assert.equal(timer.remaining(), 1197000));
+timer.toggle(); now += 300000;
+test('pausa explícita', () => assert.equal(timer.remaining(), 1197000));
+test('entrada inválida é atômica', () => {assert.throws(() => timer.configure(NaN, 2)); assert.equal(timer.total, 1200000);});
+test('alerta inválido', () => assert.throws(() => timer.configure(10, 11)));
+test('limites e infinitos', () => {for (const value of [0, -1, 601, Infinity]) assert.throws(() => timer.configure(value, 0));});
+timer.configure(10, 2);
+test('configuração preserva decorrido', () => assert.equal(timer.remaining(), 597000));
+timer.toggle(); now += 600000;
+test('excesso', () => assert.equal(Timer.format(timer.remaining()), '+00:03'));
+timer.reset();
+test('reinício pausado', () => {assert.equal(timer.remaining(), 600000); assert.equal(timer.running, false);});
+timer.adjust(-100);
+test('piso e alerta coerente', () => {assert.equal(timer.total, 60000); assert.equal(timer.warn, 60000);});
+timer.adjust(1000);
+test('teto de duração', () => assert.equal(timer.total, 36000000));
+test('formatação', () => {assert.equal(Timer.format(1), '00:01'); assert.equal(Timer.format(0), '00:00'); assert.equal(Timer.format(-1000), '+00:01');});
+console.log(count + ' testes de lógica aprovados; sem validação gráfica ou suspensão real.');
