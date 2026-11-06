@@ -94,7 +94,7 @@ docs/                  versão para navegador
 extras/                versão em PowerShell para Windows
 ```
 
-Os instaladores dos três sistemas são gerados pelo GitHub Actions ao criar uma tag `v*` (por exemplo `git tag v1.0.1 && git push --tags`).
+Os instaladores dos três sistemas são gerados pelo GitHub Actions e anexados automaticamente quando uma release é publicada no GitHub (ou quando uma tag `v*` é enviada).
 
 ## Licença
 
