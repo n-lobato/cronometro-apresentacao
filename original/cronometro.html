@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cronômetro de Apresentação</title>
+<style>
+  :root { --bg:#0f1218; --panel:#171b23; --txt:#e8ebf0; --muted:#8a93a3; --ok:#3ddc84; --warn:#f5c542; --crit:#ff8a3d; --over:#ff4d4d; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--txt); font-family: "Segoe UI", system-ui, sans-serif; }
+  .wrap { max-width:1000px; margin:0 auto; padding:32px 20px 48px; }
+  h1 { font-size:18px; font-weight:600; letter-spacing:.04em; color:var(--muted); margin:0 0 24px; text-transform:uppercase; }
+  .label { font-family: Consolas, "Courier New", monospace; font-size:13px; letter-spacing:.18em; color:var(--muted); text-transform:uppercase; }
+  .main { text-align:center; padding:28px 0 20px; }
+  #big { font-family: Consolas, "Courier New", monospace; font-weight:700; font-size:clamp(80px, 16vw, 180px); line-height:1; margin:10px 0 28px; color:var(--ok); transition:color .3s; }
+  .stats { display:flex; justify-content:center; gap:48px; flex-wrap:wrap; }
+  .stat .v { font-family: Consolas, "Courier New", monospace; font-size:28px; font-weight:700; margin-top:6px; }
+  .ok{color:var(--ok)} .warn{color:var(--warn)} .crit{color:var(--crit)} .over{color:var(--over)}
+  .panel { background:var(--panel); border-radius:12px; padding:20px; margin-top:28px; display:flex; flex-wrap:wrap; gap:14px; align-items:center; }
+  .panel label { font-size:14px; color:var(--muted); display:flex; align-items:center; gap:8px; }
+  input[type=number] { width:80px; padding:8px; border-radius:8px; border:1px solid #2b3240; background:#0f1218; color:var(--txt); font-size:16px; }
+  button { padding:10px 16px; border-radius:8px; border:1px solid #2b3240; background:#222836; color:var(--txt); font-size:14px; cursor:pointer; }
+  button:hover { background:#2b3242; }
+  button.primary { background:#1f7a4a; border-color:#1f7a4a; }
+  button.primary:hover { background:#25905a; }
+  button.pip { background:#2a4f9e; border-color:#2a4f9e; }
+  button.pip:hover { background:#3260bd; }
+  .spacer { flex:1; }
+  .preview { margin-top:28px; display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap; }
+  .help { flex:1; min-width:280px; font-size:14px; line-height:1.6; color:#c3c9d4; }
+  .help ol { margin:6px 0 0; padding-left:20px; }
+  #msg { margin-top:10px; color:var(--warn); font-size:14px; min-height:20px; }
+</style>
+<style id="wcss">
+  .w { width:100%; min-width:220px; background:#11141a; color:#e8ebf0; border-radius:10px; padding:10px 14px 8px; font-family: Consolas, "Courier New", monospace; position:relative; user-select:none; cursor:pointer; }
+  .w .wl { font-size:10px; letter-spacing:.18em; color:#8a93a3; }
+  .w .wb { font-size:46px; font-weight:700; line-height:1.05; color:#3ddc84; transition:color .3s; }
+  .w .ws { font-size:12px; color:#aab2c0; display:flex; justify-content:space-between; gap:10px; }
+  .w.ok .wb{color:#3ddc84} .w.warn .wb{color:#f5c542} .w.crit .wb{color:#ff8a3d} .w.over .wb{color:#ff4d4d}
+  .w.over { animation: pulse 1s infinite alternate; }
+  @keyframes pulse { from { background:#11141a; } to { background:#3a1010; } }
+  .w .wp { position:absolute; top:8px; right:12px; font-size:10px; color:#f5c542; letter-spacing:.12em; }
+  .w .wbtn { position:absolute; bottom:6px; right:8px; display:none; gap:4px; }
+  .w:hover .wbtn { display:flex; }
+  .w .wbtn button { font-size:11px; padding:2px 7px; border-radius:5px; border:1px solid #2b3240; background:#222836; color:#e8ebf0; cursor:pointer; }
+  body.pipbody { margin:0; background:#11141a; overflow:hidden; }
+  body.pipbody .w { border-radius:0; height:100vh; display:flex; flex-direction:column; justify-content:center; }
+  body.pipbody .w .wb { font-size:min(28vw, 62vh); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Cronômetro de apresentação</h1>
+
+  <div class="main">
+    <div class="label">Tempo restante</div>
+    <div id="big">20:00</div>
+    <div class="stats">
+      <div class="stat"><div class="label">Decorrido</div><div class="v" id="sDec">0 min</div></div>
+      <div class="stat"><div class="label">Tempo total</div><div class="v" id="sTot">20 min</div></div>
+      <div class="stat"><div class="label">Término previsto</div><div class="v" id="sFim">--:--:--</div></div>
+      <div class="stat"><div class="label">Hora de Brasília</div><div class="v" id="sHora">--:--:--</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <label>Duração (min) <input type="number" id="inMin" min="1" max="600" value="20"></label>
+    <label>Alerta amarelo aos (min) <input type="number" id="inWarn" min="0" max="120" value="5"></label>
+    <button id="bSet">Aplicar</button>
+    <div class="spacer"></div>
+    <button id="bMinus">-1 min</button>
+    <button id="bPlus">+1 min</button>
+    <button id="bReset">Reiniciar</button>
+    <button id="bStart" class="primary">Iniciar</button>
+    <button id="bPip" class="pip">Abrir no canto da tela</button>
+  </div>
+  <div id="msg"></div>
+
+  <div class="preview">
+    <div id="widgetHome">
+      <div class="label" style="margin-bottom:8px">Prévia da janela do canto</div>
+      <div class="w ok" id="widget" title="Clique para iniciar/pausar">
+        <div class="wl">TEMPO RESTANTE</div>
+        <div class="wp" id="wPaused">PAUSADO</div>
+        <div class="wb" id="wBig">20:00</div>
+        <div class="ws"><span id="wFim">Fim --:--</span><span id="wHora">--:--:--</span></div>
+        <div class="wbtn">
+          <button id="wMinus">-1</button><button id="wPlus">+1</button><button id="wReset">Zerar</button>
+        </div>
+      </div>
+    </div>
+    <div class="help">
+      <strong>Como usar</strong>
+      <ol>
+        <li>Abra este arquivo no Google Chrome ou no Microsoft Edge.</li>
+        <li>Defina a duração e clique em <b>Abrir no canto da tela</b>.</li>
+        <li>Arraste a janelinha para o canto desejado e ajuste o tamanho pelas bordas.</li>
+        <li>Inicie a apresentação em tela cheia. A janelinha continua visível por cima.</li>
+        <li>Clique no cronômetro para iniciar ou pausar. Atalhos: <b>espaço</b> inicia/pausa, <b>R</b> reinicia, <b>+</b> e <b>-</b> ajustam 1 minuto.</li>
+      </ol>
+      Cores: verde no tempo normal, amarelo no alerta, laranja no último minuto e vermelho piscando quando o tempo estoura (passa a contar o excesso com "+").
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const S = { total: 20*60000, acc: 0, start: null, warnMs: 5*60000 };
+  const $ = id => document.getElementById(id);
+  const horaFmt = new Intl.DateTimeFormat('pt-BR', { timeZone:'America/Sao_Paulo', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
+  const horaCurta = new Intl.DateTimeFormat('pt-BR', { timeZone:'America/Sao_Paulo', hour:'2-digit', minute:'2-digit', hour12:false });
+  let pipWin = null;
+
+  const running = () => S.start !== null;
+  const elapsed = () => S.acc + (running() ? Date.now() - S.start : 0);
+
+  function fmt(ms){
+    const over = ms < 0;
+    const s = over ? Math.floor(-ms/1000) : Math.ceil(ms/1000);
+    const m = Math.floor(s/60), r = s%60;
+    return (over ? '+' : '') + String(m).padStart(2,'0') + ':' + String(r).padStart(2,'0');
+  }
+  function state(rem){
+    if (rem < 0) return 'over';
+    if (rem <= 60000) return 'crit';
+    if (rem <= S.warnMs) return 'warn';
+    return 'ok';
+  }
+
+  function tick(){
+    const el = elapsed(), rem = S.total - el, now = new Date();
+    const st = state(rem), txt = fmt(rem);
+    const fim = new Date(now.getTime() + Math.max(rem, 0));
+    $('big').textContent = txt;
+    $('big').className = st;
+    $('sDec').textContent = Math.floor(el/60000) + ' min';
+    $('sTot').textContent = Math.round(S.total/60000) + ' min';
+    $('sFim').textContent = rem < 0 ? 'estourado' : horaFmt.format(fim);
+    $('sHora').textContent = horaFmt.format(now);
+    $('wBig').textContent = txt;
+    $('widget').className = 'w ' + st;
+    $('wFim').textContent = rem < 0 ? 'Tempo esgotado' : 'Fim ' + horaCurta.format(fim);
+    $('wHora').textContent = horaFmt.format(now);
+    $('wPaused').style.display = running() ? 'none' : 'block';
+    $('wPaused').textContent = el === 0 ? 'PRONTO' : 'PAUSADO';
+    $('bStart').textContent = running() ? 'Pausar' : (el > 0 ? 'Continuar' : 'Iniciar');
+  }
+
+  function toggle(){
+    if (running()) { S.acc += Date.now() - S.start; S.start = null; }
+    else { S.start = Date.now(); }
+    tick();
+  }
+  function reset(){ S.acc = 0; S.start = null; tick(); }
+  function adjust(min){ S.total = Math.max(60000, S.total + min*60000); $('inMin').value = Math.round(S.total/60000); tick(); }
+  function apply(){
+    const m = parseFloat($('inMin').value), w = parseFloat($('inWarn').value);
+    if (m > 0) S.total = m*60000;
+    if (w >= 0) S.warnMs = w*60000;
+    tick();
+  }
+  function keys(e){
+    if (e.target && e.target.tagName === 'INPUT') return;
+    if (e.code === 'Space') { e.preventDefault(); toggle(); }
+    else if (e.key === 'r' || e.key === 'R') reset();
+    else if (e.key === '+' || e.key === '=') adjust(1);
+    else if (e.key === '-') adjust(-1);
+  }
+
+  async function openPip(){
+    $('msg').textContent = '';
+    if (pipWin) { pipWin.focus(); return; }
+    if (!('documentPictureInPicture' in window)) {
+      $('msg').textContent = 'Este navegador não suporta a janela flutuante. Abra o arquivo no Chrome ou no Edge atualizados, ou use a versão para Windows (cronometro.bat).';
+      return;
+    }
+    try {
+      pipWin = await documentPictureInPicture.requestWindow({ width: 300, height: 130 });
+    } catch (err) {
+      $('msg').textContent = 'Não foi possível abrir a janela flutuante: ' + err.message;
+      return;
+    }
+    const st = pipWin.document.createElement('style');
+    st.textContent = $('wcss').textContent;
+    pipWin.document.head.append(st);
+    pipWin.document.title = 'Cronômetro';
+    pipWin.document.body.className = 'pipbody';
+    pipWin.document.body.append($('widget'));
+    pipWin.document.addEventListener('keydown', keys);
+    const t = pipWin.setInterval(tick, 200);
+    pipWin.addEventListener('pagehide', () => {
+      try { pipWin.clearInterval(t); } catch(e){}
+      $('widgetHome').append($('widget'));
+      pipWin = null;
+      tick();
+    });
+    tick();
+  }
+
+  $('bStart').onclick = toggle;
+  $('bReset').onclick = reset;
+  $('bPlus').onclick = () => adjust(1);
+  $('bMinus').onclick = () => adjust(-1);
+  $('bSet').onclick = apply;
+  $('inMin').addEventListener('change', apply);
+  $('inWarn').addEventListener('change', apply);
+  $('bPip').onclick = openPip;
+  $('widget').addEventListener('click', e => { if (e.target.tagName !== 'BUTTON') toggle(); });
+  $('wPlus').onclick = () => adjust(1);
+  $('wMinus').onclick = () => adjust(-1);
+  $('wReset').onclick = reset;
+  document.addEventListener('keydown', keys);
+
+  setInterval(tick, 200);
+  tick();
+})();
+</script>
+</body>
+</html>
