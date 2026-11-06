@@ -4,7 +4,7 @@
   "private": true,
   "main": "desktop/main.cjs",
   "scripts": {
-    "test": "node tests/timer.test.cjs",
+    "test": "node tests/timer.test.cjs && node tests/interface.test.cjs",
     "start": "electron ."
   }
 }
