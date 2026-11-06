@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Testes (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Instalar dependências
+        run: npm install --no-audit --no-fund
+
+      - name: Testes unitários
+        run: npm test
+
+      - name: Teste de fumaça no Linux (abre o app numa tela virtual)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a npx electron . --smoke-test --no-sandbox
+        env:
+          SMOKE_OUT: smoke-output
+
+      - name: Teste de fumaça no Windows/macOS (abre o app de verdade)
+        if: runner.os != 'Linux'
+        run: npx electron . --smoke-test
+        env:
+          SMOKE_OUT: smoke-output
+
+      - name: Guardar capturas de tela
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-${{ matrix.os }}
+          path: smoke-output
+          if-no-files-found: ignore

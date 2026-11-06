@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'">
+<title>Cronômetro de Apresentação</title>
+<link rel="stylesheet" href="panel.css">
+</head>
+<body>
+<div class="wrap">
+
+  <section class="display">
+    <div class="label">Tempo restante</div>
+    <div id="big" class="big ok">20:00</div>
+    <div class="stats">
+      <div><div class="label">Decorrido</div><div class="v" id="sDec">0 min</div></div>
+      <div><div class="label">Tempo total</div><div class="v" id="sTot">20 min</div></div>
+      <div><div class="label">Término previsto</div><div class="v" id="sFim">--:--:--</div></div>
+      <div><div class="label" id="sHoraLbl">Hora de Brasília</div><div class="v" id="sHora">--:--:--</div></div>
+    </div>
+    <div class="controls">
+      <button data-cmd="adjust" data-delta="-1">−1 min</button>
+      <button data-cmd="reset">Reiniciar</button>
+      <button id="bToggle" class="primary" data-cmd="toggle">Iniciar</button>
+      <button data-cmd="adjust" data-delta="1">+1 min</button>
+    </div>
+  </section>
+
+  <div class="grid">
+
+    <section class="card">
+      <h2>Duração</h2>
+      <div class="row">
+        <label>Tempo da apresentação (min)
+          <input type="number" id="inTotal" min="1" max="600" step="1">
+        </label>
+      </div>
+      <div class="presets" id="presets"></div>
+      <div class="row two">
+        <label>Amarelo a partir de (min)
+          <input type="number" id="inWarn" min="0" max="600" step="1" data-setting="warnMin">
+        </label>
+        <label>Laranja a partir de (min)
+          <input type="number" id="inCrit" min="0" max="600" step="1" data-setting="critMin">
+        </label>
+      </div>
+      <p class="hint">Quando o tempo acaba, o cronômetro fica vermelho e passa a contar o excesso com "+".</p>
+    </section>
+
+    <section class="card">
+      <h2>Cronômetro do canto</h2>
+      <label class="check"><input type="checkbox" data-setting="overlayVisible"> Mostrar a janelinha flutuante</label>
+      <div class="row">
+        <span class="sub">Posição</span>
+        <div class="corners" id="corners">
+          <button data-pos="top-left" title="Superior esquerdo"></button>
+          <button data-pos="top-right" title="Superior direito"></button>
+          <button data-pos="bottom-left" title="Inferior esquerdo"></button>
+          <button data-pos="bottom-right" title="Inferior direito"></button>
+        </div>
+        <span class="hint" id="customHint">Você também pode arrastar a janelinha para qualquer lugar.</span>
+      </div>
+      <div class="row">
+        <span class="sub">Tamanho</span>
+        <div class="seg" id="sizes">
+          <button data-size="p">P</button><button data-size="m">M</button><button data-size="g">G</button>
+        </div>
+      </div>
+      <div class="row">
+        <label>Opacidade <input type="range" min="0.3" max="1" step="0.05" data-setting="opacity"></label>
+      </div>
+      <div class="row">
+        <label>Monitor <select id="display"></select></label>
+      </div>
+      <label class="check"><input type="checkbox" data-setting="showEnd"> Mostrar horário previsto de término</label>
+      <label class="check"><input type="checkbox" data-setting="showClock"> Mostrar relógio</label>
+      <div class="row">
+        <span class="sub">Relógio</span>
+        <div class="seg" id="clocks">
+          <button data-clock="brasilia">Hora de Brasília</button><button data-clock="local">Hora local</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Avisos</h2>
+      <label class="check"><input type="checkbox" data-setting="soundWarn"> Bipe ao entrar no amarelo e no laranja</label>
+      <label class="check"><input type="checkbox" data-setting="soundEnd"> Bipe quando o tempo acabar</label>
+      <label class="check"><input type="checkbox" data-setting="flashOver"> Piscar em vermelho depois que o tempo acabar</label>
+      <p class="hint">Enquanto o cronômetro estiver rodando, o computador não entra em descanso de tela.</p>
+    </section>
+
+    <section class="card">
+      <h2>Atalhos de teclado</h2>
+      <label class="check"><input type="checkbox" data-setting="shortcuts"> Ativar atalhos globais (funcionam com a apresentação em tela cheia)</label>
+      <table id="shortcuts"></table>
+      <p class="warn-text" id="shortcutFail"></p>
+    </section>
+
+  </div>
+
+  <footer>
+    <span id="trayNote">Fechar esta janela mantém o cronômetro ativo na bandeja do sistema.</span>
+    <span class="spacer"></span>
+    <a href="#" id="repo">Código no GitHub</a>
+    <span id="version"></span>
+    <button data-cmd="quit" class="danger">Sair</button>
+  </footer>
+</div>
+<script src="../shared/cron.js"></script>
+<script src="common.js"></script>
+<script src="panel.js"></script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+{
+  "name": "cronometro-apresentacao",
+  "productName": "Cronômetro de Apresentação",
+  "version": "1.0.0",
+  "description": "Cronômetro que fica no canto da tela, por cima da apresentação em tela cheia (PowerPoint, PDF, Keynote, Impress, Google Slides).",
+  "main": "src/main.js",
+  "author": "n-lobato",
+  "license": "MIT",
+  "homepage": "https://github.com/n-lobato/cronometro-apresentacao",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/n-lobato/cronometro-apresentacao.git"
+  },
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/cron.test.js",
+    "smoke": "electron . --smoke-test",
+    "dist": "electron-builder --publish never",
+    "icons": "node scripts/make-icons.js"
+  },
+  "devDependencies": {
+    "electron": "^38.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "io.github.n-lobato.cronometro-apresentacao",
+    "productName": "Cronômetro de Apresentação",
+    "executableName": "cronometro-apresentacao",
+    "artifactName": "Cronometro-de-Apresentacao-${version}-${os}-${arch}.${ext}",
+    "copyright": "Copyright © 2026 n-lobato",
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "win": {
+      "icon": "build/icon.png",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Cronômetro de Apresentação",
+      "artifactName": "Cronometro-de-Apresentacao-${version}-windows-instalador.${ext}"
+    },
+    "portable": {
+      "artifactName": "Cronometro-de-Apresentacao-${version}-windows-portatil.${ext}"
+    },
+    "mac": {
+      "icon": "build/icon.png",
+      "category": "public.app-category.productivity",
+      "identity": null,
+      "hardenedRuntime": false,
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ]
+    },
+    "dmg": {
+      "artifactName": "Cronometro-de-Apresentacao-${version}-macos-${arch}.${ext}"
+    },
+    "linux": {
+      "icon": "build/icon.png",
+      "category": "Office",
+      "maintainer": "n-lobato <n-lobato@users.noreply.github.com>",
+      "synopsis": "Cronômetro flutuante para apresentações",
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "appImage": {
+      "artifactName": "Cronometro-de-Apresentacao-${version}-linux-${arch}.${ext}"
+    },
+    "deb": {
+      "artifactName": "Cronometro-de-Apresentacao-${version}-linux-${arch}.${ext}"
+    },
+    "afterPack": "scripts/after-pack.js"
+  }
+}

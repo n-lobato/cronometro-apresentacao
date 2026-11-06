@@ -1,0 +1,58 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; background: #11141a; }
+body {
+  color: #e8ebf0;
+  font-family: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-app-region: drag;       /* arrastar a janela por qualquer ponto */
+  cursor: move;
+}
+.w {
+  height: 100vh;
+  padding: 4vh 4.5vw 4vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid #262c38;
+  transition: background .3s;
+}
+.top { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.lbl { font-size: clamp(8px, 3.4vw, 13px); letter-spacing: .16em; color: #8a93a3; white-space: nowrap; overflow: hidden; }
+.badge { color: #f5c542; }
+.btns { display: flex; gap: 2px; -webkit-app-region: no-drag; opacity: .45; transition: opacity .2s; }
+.btns:hover { opacity: 1; }
+.btns button {
+  -webkit-app-region: no-drag;
+  font: inherit;
+  font-size: clamp(9px, 3.3vw, 13px);
+  line-height: 1;
+  padding: .3em .45em;
+  border-radius: 4px;
+  border: 1px solid #2b3240;
+  background: #1c212c;
+  color: #e8ebf0;
+  cursor: pointer;
+}
+.btns button:hover { background: #2b3242; }
+.big {
+  font-weight: 700;
+  line-height: 1;
+  font-size: min(25vw, 54vh);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: #3ddc84;
+  transition: color .3s;
+}
+.bottom { display: flex; justify-content: space-between; gap: 8px; font-size: clamp(9px, 3.8vw, 14px); color: #aab2c0; white-space: nowrap; }
+@media (max-width: 260px) { #lbl { display: none; } }
+.hide-end #fim, .hide-clock #hora { visibility: hidden; }
+
+.ok .big { color: #3ddc84; }
+.warn .big { color: #f5c542; }
+.crit .big { color: #ff8a3d; }
+.over .big { color: #ff4d4d; }
+.over.flash { animation: pulse 1s infinite alternate; }
+.ping { animation: ping .45s 6 alternate; }
+@keyframes pulse { from { background: #11141a; } to { background: #4a1212; } }
+@keyframes ping { from { background: #11141a; } to { background: #3d3410; } }
