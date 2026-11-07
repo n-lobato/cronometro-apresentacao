@@ -16,10 +16,35 @@ const DEFAULTS = Object.freeze({
   clock: 'brasilia',     // brasilia | local
   showClock: true,
   showEnd: true,
-  soundWarn: true,
-  soundEnd: true,
+  // Sons desligados por padrão: com o notebook ligado ao projetor por HDMI,
+  // o bipe costuma sair nas caixas de som da sala.
+  soundWarn: false,
+  soundEnd: false,
   flashOver: true,
-  shortcuts: true        // atalhos globais de teclado
+  shortcuts: true,       // atalhos globais de teclado
+  color: 'verde',        // cor do relógio (nome da paleta ou #rrggbb)
+  background: 'escuro',  // escuro | preto | claro
+  phaseColors: true,     // muda para amarelo/laranja conforme o tempo
+  showButtons: true      // botões pequenos na janelinha
+});
+
+// Cor de cada opção para fundo escuro (dark) e fundo claro (light).
+const COLORS = Object.freeze({
+  verde:    { label: 'Verde',    dark: '#3ddc84', light: '#13824a' },
+  azul:     { label: 'Azul',     dark: '#4da3ff', light: '#1b5fc4' },
+  ciano:    { label: 'Ciano',    dark: '#22d3ee', light: '#0e7f93' },
+  branco:   { label: 'Branco',   dark: '#f2f4f8', light: '#1d222b' },
+  amarelo:  { label: 'Amarelo',  dark: '#f5c542', light: '#9a6f00' },
+  laranja:  { label: 'Laranja',  dark: '#ff8a3d', light: '#c2500c' },
+  vermelho: { label: 'Vermelho', dark: '#ff4d4d', light: '#c62828' },
+  roxo:     { label: 'Roxo',     dark: '#b38cff', light: '#6a3fc7' },
+  rosa:     { label: 'Rosa',     dark: '#ff7ab6', light: '#b8326f' }
+});
+
+const BACKGROUNDS = Object.freeze({
+  escuro: { label: 'Escuro', bg: '#11141a', fg: '#aab2c0', muted: '#8a93a3', border: '#262c38', light: false },
+  preto:  { label: 'Preto',  bg: '#000000', fg: '#b8bfcc', muted: '#8a93a3', border: '#1c1f26', light: false },
+  claro:  { label: 'Claro',  bg: '#f4f6f9', fg: '#3a4150', muted: '#5f6878', border: '#cfd5df', light: true }
 });
 
 const SIZES = Object.freeze({
@@ -31,8 +56,11 @@ const SIZES = Object.freeze({
 const ALLOWED = {
   position: ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'custom'],
   size: Object.keys(SIZES),
-  clock: ['brasilia', 'local']
+  clock: ['brasilia', 'local'],
+  background: Object.keys(BACKGROUNDS)
 };
+
+const HEX = /^#[0-9a-fA-F]{6}$/;
 
 /** Valida e limpa um conjunto de configurações vindo da tela ou do disco. */
 function sanitize(input) {
@@ -44,6 +72,8 @@ function sanitize(input) {
     const def = DEFAULTS[key];
     if (ALLOWED[key]) {
       if (ALLOWED[key].includes(v)) out[key] = v;
+    } else if (key === 'color') {
+      if (COLORS[v] || HEX.test(v)) out[key] = v;
     } else if (key === 'customBounds') {
       if (v && ['x', 'y', 'width', 'height'].every(k => Number.isFinite(v[k]))) {
         out[key] = { x: Math.round(v.x), y: Math.round(v.y), width: Math.round(v.width), height: Math.round(v.height) };
@@ -104,4 +134,4 @@ class SettingsStore {
   }
 }
 
-module.exports = { DEFAULTS, SIZES, sanitize, SettingsStore };
+module.exports = { DEFAULTS, SIZES, COLORS, BACKGROUNDS, sanitize, SettingsStore };

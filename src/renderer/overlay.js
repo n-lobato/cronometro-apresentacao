@@ -12,6 +12,7 @@
     if (s.flashOver && v.over && v.running) cls.push('flash');
     if (!s.showEnd) cls.push('hide-end');
     if (!s.showClock) cls.push('hide-clock');
+    if (!s.showButtons) cls.push('no-btns');
     if ($('w').classList.contains('ping')) cls.push('ping');
     const next = cls.join(' ');
     if ($('w').className !== next) $('w').className = next;
@@ -19,6 +20,7 @@
     $('fim').textContent = v.over ? 'Tempo esgotado' : 'Fim ' + v.endShort;
     $('hora').textContent = v.clock;
     $('bToggle').textContent = v.running ? '❚❚' : '▶';
+    UI.applyTheme(state, document.documentElement);
   }
 
   document.querySelectorAll('[data-cmd]').forEach((b) => {
@@ -27,6 +29,48 @@
       if (b.dataset.delta) cmd.deltaMin = Number(b.dataset.delta);
       window.cron.send(cmd);
     });
+  });
+
+  /* Arrastar, duplo clique e botão direito em qualquer ponto do relógio. */
+  const w = $('w');
+  let drag = null;
+  const onButton = (e) => e.target.closest && e.target.closest('button');
+
+  w.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 || onButton(e)) return;
+    drag = { sx: e.screenX, sy: e.screenY, moved: false, id: e.pointerId };
+    try { w.setPointerCapture(e.pointerId); } catch (_) { /* ignora */ }
+  });
+  w.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    const dx = e.screenX - drag.sx;
+    const dy = e.screenY - drag.sy;
+    if (!drag.moved) {
+      if (Math.hypot(dx, dy) < 4) return;   // pequeno tremor não conta como arraste
+      drag.moved = true;
+      document.body.classList.add('dragging');
+      window.cron.send({ type: 'drag:start' });
+    }
+    window.cron.send({ type: 'drag:move', dx, dy });
+  });
+  const endDrag = () => {
+    if (!drag) return;
+    if (drag.moved) window.cron.send({ type: 'drag:end' });
+    try { w.releasePointerCapture(drag.id); } catch (_) { /* ignora */ }
+    document.body.classList.remove('dragging');
+    drag = null;
+  };
+  w.addEventListener('pointerup', endDrag);
+  w.addEventListener('pointercancel', endDrag);
+  w.addEventListener('lostpointercapture', endDrag);
+
+  w.addEventListener('dblclick', (e) => {
+    if (onButton(e)) return;
+    window.cron.send({ type: 'toggle' });
+  });
+  w.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    window.cron.send({ type: 'menu' });
   });
 
   /* Sons de aviso gerados na hora (sem arquivos de áudio). */

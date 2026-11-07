@@ -48,5 +48,39 @@
       .split('+').join(mac ? ' ' : ' + ');
   }
 
-  window.UI = { view, prettyAccel };
+  /** Calcula as cores do tema escolhido. */
+  function theme(state) {
+    const s = state.settings;
+    const pal = state.palette;
+    const bg = pal.backgrounds[s.background] || pal.backgrounds.escuro;
+    const L = bg.light;
+    const c = pal.colors[s.color];
+    const base = c ? (L ? c.light : c.dark) : s.color;
+    const phase = s.phaseColors;
+    return {
+      '--base': base,
+      '--warn': phase ? (L ? '#9a6f00' : '#f5c542') : base,
+      '--crit': phase ? (L ? '#c2500c' : '#ff8a3d') : base,
+      '--over': L ? '#c62828' : '#ff4d4d',
+      '--bg': bg.bg,
+      '--fg': bg.fg,
+      '--muted': bg.muted,
+      '--border': bg.border,
+      '--flash': L ? '#ffd2d2' : '#4a1212',
+      '--ping': L ? '#ffefb8' : '#3d3410',
+      '--btn-bg': L ? '#e3e7ee' : '#1c212c',
+      '--btn-hover': L ? '#d3d9e3' : '#2b3242',
+      '--btn-fg': L ? '#1d222b' : '#e8ebf0',
+      '--btn-border': L ? '#c3cad6' : '#2b3240'
+    };
+  }
+
+  function applyTheme(state, el) {
+    const vars = theme(state);
+    for (const k of Object.keys(vars)) {
+      if (el.style.getPropertyValue(k) !== vars[k]) el.style.setProperty(k, vars[k]);
+    }
+  }
+
+  window.UI = { view, prettyAccel, theme, applyTheme };
 })();

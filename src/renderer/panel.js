@@ -53,6 +53,28 @@
     setSetting({ displayId: v === '' ? null : Number(v), position: state && state.settings.position === 'custom' ? 'top-right' : state.settings.position });
   });
 
+  $('customColor').addEventListener('change', (e) => setSetting({ color: e.target.value }));
+
+  function buildAppearance() {
+    if ($('colors').childElementCount) return;
+    const pal = state.palette;
+    Object.entries(pal.colors).forEach(([id, c]) => {
+      const b = document.createElement('button');
+      b.dataset.color = id;
+      b.title = c.label;
+      b.style.background = c.dark;
+      b.addEventListener('click', () => setSetting({ color: id }));
+      $('colors').appendChild(b);
+    });
+    Object.entries(pal.backgrounds).forEach(([id, bg]) => {
+      const b = document.createElement('button');
+      b.dataset.bg = id;
+      b.textContent = bg.label;
+      b.addEventListener('click', () => setSetting({ background: id }));
+      $('bgs').appendChild(b);
+    });
+  }
+
   $('repo').addEventListener('click', (e) => { e.preventDefault(); send({ type: 'open:repo' }); });
 
   document.addEventListener('keydown', (e) => {
@@ -74,6 +96,14 @@
   function render() {
     if (!state) return;
     const s = state.settings;
+    buildAppearance();
+    document.querySelectorAll('#colors [data-color]').forEach((b) => b.classList.toggle('on', b.dataset.color === s.color));
+    document.querySelectorAll('#bgs [data-bg]').forEach((b) => b.classList.toggle('on', b.dataset.bg === s.background));
+    const hex = state.palette.colors[s.color] ? state.palette.colors[s.color].dark : s.color;
+    setValue($('customColor'), hex);
+    $('colorWarn').textContent = (s.color === 'vermelho' || s.color === 'laranja' || s.color === 'amarelo')
+      ? 'Atenção: essa cor se confunde com os avisos de tempo. O fim do tempo continua indicado pelo "+" e pelo piscar.'
+      : '';
 
     setValue($('inTotal'), Math.round(state.timer.totalMs / 60000));
     document.querySelectorAll('[data-setting]').forEach((el) => setValue(el, s[el.dataset.setting]));
@@ -130,6 +160,8 @@
     const v = UI.view(state, Date.now());
     $('big').textContent = v.text;
     $('big').className = 'big ' + v.level;
+    // Prévia da cor escolhida (sempre na versão para fundo escuro do painel).
+    UI.applyTheme({ ...state, settings: { ...state.settings, background: 'escuro' } }, $('big'));
     $('sDec').textContent = v.elapsedMin + ' min';
     $('sTot').textContent = v.totalMin + ' min';
     $('sFim').textContent = v.over ? 'esgotado' : v.endLong;

@@ -11,7 +11,8 @@ Roda no **Windows, macOS e Linux**.
 * Janelinha flutuante sempre visível, que fica por cima da apresentação em tela cheia (inclusive no macOS, onde a tela cheia vira um espaço separado).
 * Contagem regressiva com cores: verde no tempo normal, amarelo no alerta, laranja no último minuto e vermelho piscando quando o tempo acaba, passando a contar o excesso com "+".
 * Mostra o horário previsto de término e a hora de Brasília (ou a hora local, se preferir).
-* Bipes de aviso ao entrar no amarelo, no laranja e quando o tempo acaba.
+* Bipes de aviso opcionais ao entrar no amarelo, no laranja e quando o tempo acaba (vêm desligados, porque com o projetor ligado por HDMI o som pode sair nas caixas da sala).
+* Cor do relógio ajustável (verde, azul, ciano, branco, amarelo, laranja, vermelho, roxo, rosa ou qualquer outra) e fundo escuro, preto ou claro, para combinar com a apresentação.
 * Atalhos de teclado globais, que funcionam mesmo com a apresentação em primeiro plano.
 * Clicar no cronômetro não tira o foco da apresentação: o passador de slides e as setas continuam funcionando.
 * Escolha do canto, do tamanho (P, M, G), da opacidade e do monitor (útil com projetor ou segunda tela).
@@ -46,7 +47,15 @@ O programa é gratuito e não tem assinatura digital paga da Microsoft ou da App
 1. Abra o programa. Aparecem o painel e a janelinha no canto.
 2. No painel, escolha a duração (há atalhos de 5 a 120 minutos) e o canto da tela.
 3. Inicie a apresentação em tela cheia.
-4. Inicie o cronômetro pelo botão ▶ da janelinha, pelo painel ou com **Ctrl + Alt + S**.
+4. Inicie o cronômetro com **dois cliques** na janelinha, pelo botão ▶, pelo painel ou com **Ctrl + Alt + S**.
+
+Na janelinha:
+
+| Ação | Resultado |
+|---|---|
+| Dois cliques | Inicia ou pausa |
+| Botão direito | Abre o menu: iniciar/pausar, reiniciar, ±1 minuto, duração, cor, fundo, tamanho, posição, opacidade, sons e mais |
+| Clicar e arrastar | Muda de lugar (a posição fica salva) |
 
 Fechar o painel não encerra o programa: ele continua na bandeja do sistema (ao lado do relógio no Windows e no Linux, na barra de menus no macOS, onde o tempo também aparece). Para sair, use **Sair** no painel ou no menu da bandeja.
 

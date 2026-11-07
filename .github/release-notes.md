@@ -9,10 +9,12 @@ Cronômetro que fica no canto da tela, por cima da apresentação em tela cheia.
 
 Na primeira abertura o Windows e o macOS mostram um aviso de segurança, porque o programa não tem assinatura digital paga. Veja no [README](https://github.com/n-lobato/cronometro-apresentacao#primeira-abertura) como liberar.
 
-**Novidades da v1.0.0**
+**Novidades da v1.1.0**
 
-* Janelinha flutuante sempre por cima da apresentação, com escolha de canto, tamanho, opacidade e monitor
-* Cores por fase do tempo e contagem do excesso
-* Término previsto e hora de Brasília ou local
-* Bipes de aviso e atalhos de teclado globais
-* Painel completo e ícone na bandeja do sistema
+* Dois cliques no cronômetro iniciam ou pausam a contagem
+* Menu no botão direito: iniciar/pausar, reiniciar, ±1 minuto, duração, cor, fundo, tamanho, posição, opacidade, sons e mais
+* Nove cores prontas e cor personalizada, com fundo escuro, preto ou claro
+* Opção de manter a cor fixa, sem mudar para amarelo e laranja
+* Opção de esconder os botões da janelinha
+* O arraste agora funciona em qualquer ponto do relógio
+* Bipes passam a vir desligados por padrão

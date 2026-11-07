@@ -68,3 +68,12 @@ test('posição personalizada é validada', () => {
     { x: 1, y: 2, width: 290, height: 120 });
   assert.equal(sanitize({ customBounds: { x: 'a' } }).customBounds, null);
 });
+
+test('cores e fundos são validados', () => {
+  assert.equal(sanitize({ color: 'azul' }).color, 'azul');
+  assert.equal(sanitize({ color: '#A1b2C3' }).color, '#A1b2C3');
+  assert.equal(sanitize({ color: 'red' }).color, DEFAULTS.color);
+  assert.equal(sanitize({ color: '#fff' }).color, DEFAULTS.color);
+  assert.equal(sanitize({ background: 'claro' }).background, 'claro');
+  assert.equal(sanitize({ background: 'neon' }).background, DEFAULTS.background);
+});

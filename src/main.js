@@ -8,7 +8,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const Cron = require('./shared/cron');
-const { SIZES, SettingsStore } = require('./settings');
+const { SIZES, COLORS, BACKGROUNDS, SettingsStore } = require('./settings');
 
 const SMOKE = process.argv.includes('--smoke-test');
 const IS_MAC = process.platform === 'darwin';
@@ -16,6 +16,7 @@ const MARGIN = 16;
 const REPO_URL = 'https://github.com/n-lobato/cronometro-apresentacao';
 const ASSETS = path.join(__dirname, '..', 'assets');
 const PRELOAD = path.join(__dirname, 'preload.js');
+const PRESETS = [5, 10, 15, 20, 30, 45, 60, 90, 120];
 
 const SHORTCUTS = [
   { accel: 'CommandOrControl+Alt+S', label: 'Iniciar / pausar', cmd: { type: 'toggle' } },
@@ -38,6 +39,7 @@ let ignoreMovesUntil = 0;
 let moveDebounce = null;
 let blockerId = null;
 let lastTrayTitle = '';
+let dragOrigin = null;
 
 if (SMOKE) {
   app.setPath('userData', fs.mkdtempSync(path.join(os.tmpdir(), 'cronometro-smoke-')));
@@ -106,7 +108,8 @@ function snapshot() {
     platform: process.platform,
     version: app.getVersion(),
     repoUrl: REPO_URL,
-    hasTray: Boolean(tray)
+    hasTray: Boolean(tray),
+    palette: { colors: COLORS, backgrounds: BACKGROUNDS }
   };
 }
 
@@ -121,6 +124,7 @@ function broadcast() {
 
 function command(cmd) {
   if (!cmd || typeof cmd.type !== 'string') return;
+  if (handleDrag(cmd)) return;
   const now = Date.now();
   switch (cmd.type) {
     case 'toggle':
@@ -156,6 +160,9 @@ function command(cmd) {
     case 'panel:show':
       showPanel();
       break;
+    case 'menu':
+      popupOverlayMenu();
+      return;
     case 'open:repo':
       shell.openExternal(REPO_URL);
       break;
@@ -179,6 +186,7 @@ function applySettings(patch) {
 
   if (overlay && !overlay.isDestroyed()) {
     if ('opacity' in patch) overlay.setOpacity(s.opacity);
+    if ('background' in patch) overlay.setBackgroundColor(BACKGROUNDS[s.background].bg);
     if ('position' in patch || 'size' in patch || 'displayId' in patch) placeOverlay();
     if ('overlayVisible' in patch) {
       if (s.overlayVisible) { placeOverlayIfOffscreen(); overlay.showInactive(); keepOnTop(); }
@@ -329,7 +337,7 @@ function createOverlay() {
     minHeight: 70,
     frame: false,
     transparent: false,
-    backgroundColor: '#11141a',
+    backgroundColor: BACKGROUNDS[s.background].bg,
     resizable: true,
     movable: true,
     minimizable: false,
@@ -380,6 +388,100 @@ function createOverlay() {
       broadcast();
     }
   });
+}
+
+/* Arraste feito pela própria tela (e não pela "alça" do sistema), para que
+   o duplo clique e o botão direito funcionem em qualquer ponto do relógio. */
+function handleDrag(cmd) {
+  if (!overlay || overlay.isDestroyed()) return false;
+  if (cmd.type === 'drag:start') {
+    dragOrigin = overlay.getBounds();
+    return true;
+  }
+  if (cmd.type === 'drag:move') {
+    if (!dragOrigin) return true;
+    const dx = Number(cmd.dx) || 0;
+    const dy = Number(cmd.dy) || 0;
+    overlay.setBounds({
+      x: Math.round(dragOrigin.x + dx),
+      y: Math.round(dragOrigin.y + dy),
+      width: dragOrigin.width,
+      height: dragOrigin.height
+    });
+    return true;
+  }
+  if (cmd.type === 'drag:end') {
+    dragOrigin = null;
+    return true;
+  }
+  return false;
+}
+
+function buildOverlayMenu() {
+  const s = settings.get();
+  const running = Cron.isRunning(timer);
+  const set = (patch) => () => command({ type: 'settings', patch });
+  const radio = (label, checked, click) => ({ label, type: 'radio', checked, click });
+  const check = (label, key) => ({ label, type: 'checkbox', checked: Boolean(s[key]), click: set({ [key]: !s[key] }) });
+
+  const colorItems = Object.entries(COLORS).map(([id, c]) => radio(c.label, s.color === id, set({ color: id })));
+  if (!COLORS[s.color]) colorItems.push(radio('Personalizada (painel)', true, () => {}));
+
+  return Menu.buildFromTemplate([
+    { label: running ? 'Pausar' : (timer.accMs > 0 ? 'Continuar' : 'Iniciar'), click: () => command({ type: 'toggle' }) },
+    { label: 'Reiniciar', click: () => command({ type: 'reset' }) },
+    { label: '+1 minuto', click: () => command({ type: 'adjust', deltaMin: 1 }) },
+    { label: '-1 minuto', click: () => command({ type: 'adjust', deltaMin: -1 }) },
+    {
+      label: 'Duração',
+      submenu: PRESETS.map(m => radio(`${m} minutos`, timer.totalMs === m * 60000, () => command({ type: 'setTotal', min: m })))
+        .concat([{ type: 'separator' }, { label: 'Outro valor (painel)...', click: () => showPanel() }])
+    },
+    { type: 'separator' },
+    {
+      label: 'Cor do relógio',
+      submenu: colorItems.concat([
+        { type: 'separator' },
+        check('Mudar para amarelo e laranja conforme o tempo', 'phaseColors'),
+        { label: 'Outra cor (painel)...', click: () => showPanel() }
+      ])
+    },
+    {
+      label: 'Fundo',
+      submenu: Object.entries(BACKGROUNDS).map(([id, b]) => radio(b.label, s.background === id, set({ background: id })))
+    },
+    {
+      label: 'Tamanho',
+      submenu: [['p', 'Pequeno'], ['m', 'Médio'], ['g', 'Grande']].map(([id, l]) => radio(l, s.size === id, set({ size: id })))
+    },
+    {
+      label: 'Posição',
+      submenu: [
+        ['top-left', 'Canto superior esquerdo'], ['top-right', 'Canto superior direito'],
+        ['bottom-left', 'Canto inferior esquerdo'], ['bottom-right', 'Canto inferior direito']
+      ].map(([id, l]) => radio(l, s.position === id, set({ position: id })))
+    },
+    {
+      label: 'Opacidade',
+      submenu: [1, 0.9, 0.8, 0.7, 0.6, 0.5].map(o => radio(`${Math.round(o * 100)}%`, Math.abs(s.opacity - o) < 0.025, set({ opacity: o })))
+    },
+    { type: 'separator' },
+    check('Mostrar botões', 'showButtons'),
+    check('Mostrar término previsto', 'showEnd'),
+    check('Mostrar relógio', 'showClock'),
+    check('Bipe nos avisos', 'soundWarn'),
+    check('Bipe quando o tempo acabar', 'soundEnd'),
+    check('Piscar quando o tempo acabar', 'flashOver'),
+    { type: 'separator' },
+    { label: 'Abrir o painel', click: () => showPanel() },
+    { label: 'Ocultar o cronômetro', click: () => command({ type: 'overlay:hide' }) },
+    { label: 'Sair', click: () => command({ type: 'quit' }) }
+  ]);
+}
+
+function popupOverlayMenu() {
+  if (!overlay || overlay.isDestroyed()) return;
+  buildOverlayMenu().popup({ window: overlay });
 }
 
 function keepOnTop() {
@@ -494,6 +596,14 @@ function runSmokeTest() {
       const panelBig = await panel.webContents.executeJavaScript('document.getElementById("big").textContent');
       if (!/^\d{2}:\d{2}$/.test(big) || big === '20:00') errors.push(`overlay mostrou "${big}"`);
       if (!/^\d{2}:\d{2}$/.test(panelBig)) errors.push(`painel mostrou "${panelBig}"`);
+      try { buildOverlayMenu(); } catch (err) { errors.push('menu: ' + err.message); }
+      // Duplo clique deve pausar.
+      await overlay.webContents.executeJavaScript(
+        'document.getElementById("big").dispatchEvent(new MouseEvent("dblclick", { bubbles: true }))');
+      await wait(400);
+      if (Cron.isRunning(timer)) errors.push('duplo clique não pausou');
+      command({ type: 'settings', patch: { color: 'azul' } });
+      await wait(400);
       fs.writeFileSync(path.join(outDir, 'painel.png'), (await panel.webContents.capturePage()).toPNG());
       fs.writeFileSync(path.join(outDir, 'overlay.png'), (await overlay.webContents.capturePage()).toPNG());
       const report = { ok: errors.length === 0, overlay: big, panel: panelBig, errors, platform: process.platform, electron: process.versions.electron };

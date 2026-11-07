@@ -83,10 +83,28 @@
     </section>
 
     <section class="card">
+      <h2>Aparência</h2>
+      <div class="row">
+        <span class="sub">Cor</span>
+        <div class="swatches" id="colors"></div>
+        <label class="picker" title="Escolher outra cor"><input type="color" id="customColor"> Outra</label>
+      </div>
+      <div class="row">
+        <span class="sub">Fundo</span>
+        <div class="seg" id="bgs"></div>
+      </div>
+      <label class="check"><input type="checkbox" data-setting="phaseColors"> Mudar para amarelo e laranja conforme o tempo</label>
+      <label class="check"><input type="checkbox" data-setting="showButtons"> Mostrar botões na janelinha</label>
+      <p class="hint">Na janelinha: dois cliques iniciam ou pausam, o botão direito abre as opções (cor, fundo, tamanho, posição e duração) e é só arrastar para mudar de lugar.</p>
+      <p class="warn-text" id="colorWarn"></p>
+    </section>
+
+    <section class="card">
       <h2>Avisos</h2>
       <label class="check"><input type="checkbox" data-setting="soundWarn"> Bipe ao entrar no amarelo e no laranja</label>
       <label class="check"><input type="checkbox" data-setting="soundEnd"> Bipe quando o tempo acabar</label>
       <label class="check"><input type="checkbox" data-setting="flashOver"> Piscar em vermelho depois que o tempo acabar</label>
+      <p class="hint">Os bipes saem pela saída de som ativa. Com o notebook ligado ao projetor por HDMI, eles podem tocar nas caixas de som da sala.</p>
       <p class="hint">Enquanto o cronômetro estiver rodando, o computador não entra em descanso de tela.</p>
     </section>
 
