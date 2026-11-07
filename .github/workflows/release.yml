@@ -69,7 +69,11 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" out/* --clobber
             BODY=$(gh release view "$TAG" --json body --jq .body)
-            if [ -z "$BODY" ]; then gh release edit "$TAG" --notes-file .github/release-notes.md; fi
+            # Se a release foi publicada sem descrição, o GitHub usa a mensagem
+            # do último commit. Nesse caso troca pelo texto padrão.
+            if [ -z "$BODY" ] || echo "$BODY" | grep -q "Co-Authored-By"; then
+              gh release edit "$TAG" --title "Cronômetro de Apresentação $TAG" --notes-file .github/release-notes.md
+            fi
           else
             gh release create "$TAG" out/* \
               --title "Cronômetro de Apresentação $TAG" \
