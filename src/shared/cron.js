@@ -74,6 +74,16 @@
     return minutesList.filter(m => prevRemMs > m * 60000 && remMs <= m * 60000);
   }
 
+  /**
+   * Ponto de partida dos avisos ao iniciar o cronômetro. Numa contagem que
+   * começa do zero, usa "um pouco mais que o total", para que um aviso igual
+   * à duração (prova de 30 min com aviso em 30) apareça logo no início.
+   * Ao retomar depois de uma pausa, não há ponto de partida novo (null).
+   */
+  function warningBaseline(timer) {
+    return timer.accMs === 0 && timer.startedAt == null ? timer.totalMs + 1 : null;
+  }
+
   /** Converte "30, 15, 5" em [30, 15, 5]: inteiros de 1 a 600, sem repetir, do maior para o menor. */
   function parseMinutesList(input) {
     const raw = Array.isArray(input) ? input : String(input == null ? '' : input).split(/[^0-9]+/);
@@ -81,7 +91,7 @@
     return [...new Set(nums)].sort((a, b) => b - a).slice(0, 10);
   }
 
-  const api = { elapsed, remaining, isRunning, format, stateOf, toggle, reset, adjust, crossed, parseMinutesList, MIN_TOTAL_MS, MAX_TOTAL_MS };
+  const api = { elapsed, remaining, isRunning, format, stateOf, toggle, reset, adjust, crossed, warningBaseline, parseMinutesList, MIN_TOTAL_MS, MAX_TOTAL_MS };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Cron = api;

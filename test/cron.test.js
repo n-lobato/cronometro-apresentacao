@@ -116,3 +116,21 @@ test('título da prova é limitado e sem quebras de linha', () => {
   assert.equal(s.examTitle.length, 120);
   assert.deepEqual(sanitize({}).examWarnings, [30, 15, 5]);
 });
+
+test('aviso igual à duração aparece logo no início (prova de 30 min, aviso em 30)', () => {
+  const list = [30, 15, 5];
+  const fresh = { totalMs: 30 * 60000, accMs: 0, startedAt: null };
+  const base = Cron.warningBaseline(fresh);
+  assert.deepEqual(Cron.crossed(base, 30 * 60000 - 250, list), [30]);      // primeira leitura
+  assert.deepEqual(Cron.crossed(30 * 60000 - 250, 30 * 60000 - 500, list), []); // não repete
+});
+
+test('aviso maior que a duração não aparece (prova de 20 min, aviso em 30)', () => {
+  const base = Cron.warningBaseline({ totalMs: 20 * 60000, accMs: 0, startedAt: null });
+  assert.deepEqual(Cron.crossed(base, 20 * 60000 - 250, [30, 15, 5]), []);
+});
+
+test('retomar depois da pausa não repete avisos', () => {
+  assert.equal(Cron.warningBaseline({ totalMs: 30 * 60000, accMs: 60000, startedAt: null }), null);
+  assert.equal(Cron.warningBaseline({ totalMs: 30 * 60000, accMs: 0, startedAt: 123 }), null);
+});

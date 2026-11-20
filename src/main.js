@@ -132,6 +132,11 @@ function command(cmd) {
   const now = Date.now();
   // Mudanças no tempo não podem disparar avisos "Faltam X minutos" falsos.
   if (['reset', 'adjust', 'setTotal'].includes(cmd.type)) lastRem = null;
+  // Ao iniciar do zero, um aviso igual à duração também deve aparecer.
+  if ((cmd.type === 'toggle' || cmd.type === 'start') && !Cron.isRunning(timer)) {
+    const base = Cron.warningBaseline(timer);
+    if (base !== null) lastRem = base;
+  }
   switch (cmd.type) {
     case 'toggle':
       timer = Cron.toggle(timer, now);
@@ -767,6 +772,19 @@ function runSmokeTest() {
       if (ex.title !== 'Teste automático') errors.push(`título da tela cheia: "${ex.title}"`);
       if (ex.state !== 'PAUSADO') errors.push(`tela cheia não indicou pausa: "${ex.state}"`);
       try { buildExamMenu(); } catch (err) { errors.push('menu da prova: ' + err.message); }
+
+      // Prova de 20 min com aviso em 20: a faixa deve aparecer logo no início.
+      command({ type: 'settings', patch: { examWarnings: [20, 5] } });
+      command({ type: 'setTotal', min: 20 });
+      command({ type: 'reset' });
+      command({ type: 'start' });
+      await wait(1500);
+      const startBanner = await exam.webContents.executeJavaScript(
+        '({ text: document.getElementById("banner").textContent, shown: document.getElementById("banner").classList.contains("show") })');
+      if (!startBanner.shown || startBanner.text !== 'FALTAM 20 MINUTOS') {
+        errors.push(`aviso no início da prova: "${startBanner.text}" (visível: ${startBanner.shown})`);
+      }
+      command({ type: 'toggle' }); // pausa de novo
       exam.webContents.send('banner', { minutes: 15 });
       await wait(900);
       const banner = await exam.webContents.executeJavaScript('document.getElementById("banner").textContent');
