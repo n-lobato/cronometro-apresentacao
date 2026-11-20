@@ -19,6 +19,7 @@ Roda no **Windows, macOS e Linux**.
 * Pode ser arrastado para qualquer lugar. A posição fica salva.
 * Enquanto o tempo corre, o computador não entra em descanso de tela.
 * Painel completo, no mesmo estilo dos cronômetros de prova: tempo restante, decorrido, tempo total, término previsto e hora.
+* **Tela cheia (modo prova)** para TV ou projetor: tempo restante enorme, título editável no topo, avisos "Faltam X minutos" nos tempos que você escolher e "TEMPO ESGOTADO" no fim.
 
 ## Download
 
@@ -58,6 +59,19 @@ Na janelinha:
 | Clicar e arrastar | Muda de lugar (a posição fica salva) |
 
 Fechar o painel não encerra o programa: ele continua na bandeja do sistema (ao lado do relógio no Windows e no Linux, na barra de menus no macOS, onde o tempo também aparece). Para sair, use **Sair** no painel ou no menu da bandeja.
+
+### Tela cheia (modo prova)
+
+Para aplicar uma prova com o tempo na TV ou no projetor:
+
+1. No painel, no cartão **Tela cheia (modo prova)**, escreva o título (por exemplo, "Avaliação de História, 2º ano") e os avisos em minutos antes do fim (por exemplo, `30, 15, 5`). Deixe em branco se não quiser avisos.
+2. Escolha o monitor. No modo automático, o programa usa a segunda tela (TV ou projetor) se houver uma.
+3. Clique em **Abrir em tela cheia**. A TV mostra o tempo; o notebook continua com o painel.
+4. Na tela cheia, clique com o **botão direito** para abrir o menu: iniciar, pausar, retomar, +1 ou +5 minutos, reiniciar (com confirmação) e sair.
+
+Para evitar acidentes, cliques simples, duplo clique e teclas soltas não fazem nada na tela cheia. **Esc** pede confirmação antes de sair. Quando pausado, aparece "PAUSADO" na tela. Quando o tempo acaba, aparece "TEMPO ESGOTADO", sem contar o excesso. Se o cabo da TV for desconectado e reconectado, a tela cheia volta para ela.
+
+Deixe o notebook na tomada: o programa impede o descanso de tela, mas não o desligamento por bateria.
 
 ### Atalhos de teclado
 

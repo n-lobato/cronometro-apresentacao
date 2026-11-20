@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'">
+<title>Cronômetro (tela cheia)</title>
+<link rel="stylesheet" href="exam.css">
+</head>
+<body>
+  <main id="screen" class="screen ok">
+    <h1 id="title" class="title"></h1>
+
+    <div class="center">
+      <div id="label" class="label">TEMPO RESTANTE</div>
+      <div id="big" class="big">00:00</div>
+      <div id="state" class="state"></div>
+    </div>
+
+    <div class="stats">
+      <div><div class="k">Decorrido</div><div class="v" id="sDec">0 min</div></div>
+      <div><div class="k">Tempo total</div><div class="v" id="sTot">0 min</div></div>
+      <div><div class="k">Término previsto</div><div class="v" id="sFim">--:--:--</div></div>
+      <div><div class="k" id="sHoraLbl">Hora de Brasília</div><div class="v" id="sHora">--:--:--</div></div>
+    </div>
+  </main>
+
+  <div id="banner" class="banner" role="alert"></div>
+
+  <script src="../shared/cron.js"></script>
+  <script src="common.js"></script>
+  <script src="exam.js"></script>
+</body>
+</html>

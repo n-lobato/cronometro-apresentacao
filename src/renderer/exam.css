@@ -1,0 +1,68 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --base: #3ddc84; --warn: #f5c542; --crit: #ff8a3d; --over: #ff4d4d;
+  --bg: #11141a; --fg: #aab2c0; --muted: #8a93a3; --border: #262c38;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+}
+html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--fg); }
+body { font-family: var(--mono); -webkit-user-select: none; user-select: none; }
+body.idle { cursor: none; }
+
+.screen {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5vh 4vw 6vh;
+  text-align: center;
+}
+.title {
+  font-family: system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 700;
+  font-size: clamp(20px, 5.2vh, 64px);
+  line-height: 1.15;
+  color: var(--fg);
+  max-width: 92vw;
+  min-height: 1.15em;
+}
+.center { display: flex; flex-direction: column; align-items: center; }
+.label { font-size: clamp(14px, 2.8vh, 32px); letter-spacing: .3em; color: var(--muted); }
+.big {
+  font-weight: 700;
+  line-height: 1;
+  margin: 2vh 0 1vh;
+  font-size: min(25vw, 36vh);
+  font-variant-numeric: tabular-nums;
+  color: var(--base);
+  transition: color .4s, opacity .3s;
+}
+.ok .big { color: var(--base); }
+.warn .big { color: var(--warn); }
+.crit .big { color: var(--crit); }
+.over .big { color: var(--over); font-size: min(11vw, 18vh); margin: 5vh 0 3vh; letter-spacing: .02em; }
+.paused .big { opacity: .45; }
+
+.state { font-size: clamp(16px, 4vh, 48px); font-weight: 700; letter-spacing: .25em; min-height: 1.2em; color: var(--warn); }
+
+.stats { display: flex; justify-content: center; gap: 7vw; flex-wrap: wrap; }
+.stats .k { font-size: clamp(11px, 2vh, 22px); letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+.stats .v { font-size: clamp(20px, 5.4vh, 64px); font-weight: 700; margin-top: .6vh; color: #f2f4f8; font-variant-numeric: tabular-nums; }
+body.light .stats .v { color: #1d222b; }
+
+.banner {
+  position: fixed;
+  left: 0; right: 0; top: 0;
+  padding: 2.4vh 2vw;
+  font-family: system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: clamp(22px, 7vh, 90px);
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-align: center;
+  background: #f5c542;
+  color: #14171c;
+  transform: translateY(-110%);
+  transition: transform .5s ease;
+  box-shadow: 0 1vh 4vh rgba(0, 0, 0, .45);
+}
+.banner.show { transform: translateY(0); }

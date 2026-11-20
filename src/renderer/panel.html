@@ -82,6 +82,29 @@
       </div>
     </section>
 
+    <section class="card exam-card">
+      <h2>Tela cheia (modo prova)</h2>
+      <p class="hint" style="margin-top:0">Para mostrar o tempo na TV ou no projetor durante uma prova: tempo restante grande, término previsto e hora, sem botões na tela.</p>
+      <div class="row">
+        <label class="grow">Título no topo
+          <input type="text" id="examTitle" maxlength="120" placeholder="Ex.: Avaliação de História, 2º ano">
+        </label>
+      </div>
+      <div class="row">
+        <label class="grow">Avisos na tela, em minutos antes do fim
+          <input type="text" id="examWarnings" placeholder="Ex.: 30, 15, 5">
+        </label>
+      </div>
+      <div class="row">
+        <label>Monitor <select id="examDisplay"></select></label>
+      </div>
+      <div class="row">
+        <button id="bExam" class="primary">Abrir em tela cheia</button>
+      </div>
+      <p class="hint">Na tela cheia, cliques não pausam. Use o botão direito para abrir o menu (iniciar, pausar, retomar, ajustar o tempo, sair). Esc pede confirmação para sair. Quando o tempo acaba, aparece "TEMPO ESGOTADO".</p>
+      <p class="hint">Deixe o notebook ligado na tomada durante a prova. O programa impede o descanso de tela, mas não impede o desligamento por bateria.</p>
+    </section>
+
     <section class="card">
       <h2>Aparência</h2>
       <div class="row">

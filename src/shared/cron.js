@@ -65,7 +65,23 @@
     return { ...timer, totalMs: Math.min(maxMs, Math.max(minMs, timer.totalMs + deltaMs)) };
   }
 
-  const api = { elapsed, remaining, isRunning, format, stateOf, toggle, reset, adjust, MIN_TOTAL_MS, MAX_TOTAL_MS };
+  /**
+   * Avisos de prova: devolve os minutos (ex.: 30, 15, 5) cujo limite foi
+   * atravessado entre a leitura anterior e a atual do tempo restante.
+   */
+  function crossed(prevRemMs, remMs, minutesList) {
+    if (prevRemMs == null || !Array.isArray(minutesList)) return [];
+    return minutesList.filter(m => prevRemMs > m * 60000 && remMs <= m * 60000);
+  }
+
+  /** Converte "30, 15, 5" em [30, 15, 5]: inteiros de 1 a 600, sem repetir, do maior para o menor. */
+  function parseMinutesList(input) {
+    const raw = Array.isArray(input) ? input : String(input == null ? '' : input).split(/[^0-9]+/);
+    const nums = raw.map(Number).filter(n => Number.isInteger(n) && n >= 1 && n <= 600);
+    return [...new Set(nums)].sort((a, b) => b - a).slice(0, 10);
+  }
+
+  const api = { elapsed, remaining, isRunning, format, stateOf, toggle, reset, adjust, crossed, parseMinutesList, MIN_TOTAL_MS, MAX_TOTAL_MS };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Cron = api;

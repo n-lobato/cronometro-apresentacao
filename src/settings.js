@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { parseMinutesList } = require('./shared/cron');
 
 const DEFAULTS = Object.freeze({
   totalMin: 20,          // duração da apresentação
@@ -25,7 +26,10 @@ const DEFAULTS = Object.freeze({
   color: 'verde',        // cor do relógio (nome da paleta ou #rrggbb)
   background: 'escuro',  // escuro | preto | claro
   phaseColors: true,     // muda para amarelo/laranja conforme o tempo
-  showButtons: true      // botões pequenos na janelinha
+  showButtons: true,     // botões pequenos na janelinha
+  examTitle: '',         // título mostrado no topo da tela cheia (modo prova)
+  examWarnings: [30, 15, 5], // avisos "Faltam X minutos" na tela cheia
+  examDisplayId: null    // monitor da tela cheia (null = automático)
 });
 
 // Cor de cada opção para fundo escuro (dark) e fundo claro (light).
@@ -74,11 +78,15 @@ function sanitize(input) {
       if (ALLOWED[key].includes(v)) out[key] = v;
     } else if (key === 'color') {
       if (COLORS[v] || HEX.test(v)) out[key] = v;
+    } else if (key === 'examTitle') {
+      out[key] = String(v == null ? '' : v).replace(/[\u0000-\u001f\u007f]/g, ' ').slice(0, 120);
+    } else if (key === 'examWarnings') {
+      out[key] = parseMinutesList(v);
     } else if (key === 'customBounds') {
       if (v && ['x', 'y', 'width', 'height'].every(k => Number.isFinite(v[k]))) {
         out[key] = { x: Math.round(v.x), y: Math.round(v.y), width: Math.round(v.width), height: Math.round(v.height) };
       } else out[key] = null;
-    } else if (key === 'displayId') {
+    } else if (key === 'displayId' || key === 'examDisplayId') {
       out[key] = Number.isFinite(v) ? v : null;
     } else if (typeof def === 'boolean') {
       out[key] = Boolean(v);

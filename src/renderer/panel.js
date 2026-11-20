@@ -53,6 +53,18 @@
     setSetting({ displayId: v === '' ? null : Number(v), position: state && state.settings.position === 'custom' ? 'top-right' : state.settings.position });
   });
 
+  $('examTitle').addEventListener('input', (e) => setSetting({ examTitle: e.target.value }));
+  $('examWarnings').addEventListener('change', (e) => {
+    const list = Cron.parseMinutesList(e.target.value);
+    e.target.value = list.join(', ');
+    setSetting({ examWarnings: list });
+    e.target.blur();
+  });
+  $('examDisplay').addEventListener('change', (e) => {
+    setSetting({ examDisplayId: e.target.value === '' ? null : Number(e.target.value) });
+  });
+  $('bExam').addEventListener('click', () => send({ type: 'exam:toggle' }));
+
   $('customColor').addEventListener('change', (e) => setSetting({ color: e.target.value }));
 
   function buildAppearance() {
@@ -131,6 +143,26 @@
       sel.dataset.sig = sig;
     }
     setValue(sel, s.displayId == null ? '' : String(s.displayId));
+
+    // Modo prova
+    setValue($('examTitle'), s.examTitle);
+    setValue($('examWarnings'), s.examWarnings.join(', '));
+    const esel = $('examDisplay');
+    const eopts = [{ id: '', label: state.displays.length > 1 ? 'Automático (segunda tela, TV ou projetor)' : 'Automático (só há uma tela)' }]
+      .concat(opts.slice(1));
+    const esig = JSON.stringify(eopts);
+    if (esel.dataset.sig !== esig) {
+      esel.innerHTML = '';
+      eopts.forEach((o) => {
+        const op = document.createElement('option');
+        op.value = o.id;
+        op.textContent = o.label;
+        esel.appendChild(op);
+      });
+      esel.dataset.sig = esig;
+    }
+    setValue(esel, s.examDisplayId == null ? '' : String(s.examDisplayId));
+    $('bExam').textContent = state.examOpen ? 'Fechar a tela cheia' : 'Abrir em tela cheia';
 
     const tb = $('shortcuts');
     tb.innerHTML = '';

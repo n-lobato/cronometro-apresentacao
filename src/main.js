@@ -2,7 +2,7 @@
 
 const {
   app, BrowserWindow, ipcMain, globalShortcut, screen, Tray, Menu,
-  nativeImage, shell, powerSaveBlocker
+  nativeImage, shell, powerSaveBlocker, dialog
 } = require('electron');
 const fs = require('fs');
 const os = require('os');
@@ -40,6 +40,8 @@ let moveDebounce = null;
 let blockerId = null;
 let lastTrayTitle = '';
 let dragOrigin = null;
+let exam = null;        // janela de tela cheia (modo prova)
+let lastRem = null;     // tempo restante na leitura anterior (avisos da prova)
 
 if (SMOKE) {
   app.setPath('userData', fs.mkdtempSync(path.join(os.tmpdir(), 'cronometro-smoke-')));
@@ -109,13 +111,14 @@ function snapshot() {
     version: app.getVersion(),
     repoUrl: REPO_URL,
     hasTray: Boolean(tray),
-    palette: { colors: COLORS, backgrounds: BACKGROUNDS }
+    palette: { colors: COLORS, backgrounds: BACKGROUNDS },
+    examOpen: Boolean(exam && !exam.isDestroyed())
   };
 }
 
 function broadcast() {
   const snap = snapshot();
-  for (const win of [panel, overlay]) {
+  for (const win of [panel, overlay, exam]) {
     if (win && !win.isDestroyed()) win.webContents.send('state', snap);
   }
   updateTrayMenu();
@@ -125,7 +128,10 @@ function broadcast() {
 function command(cmd) {
   if (!cmd || typeof cmd.type !== 'string') return;
   if (handleDrag(cmd)) return;
+  if (handleExam(cmd)) return;
   const now = Date.now();
+  // Mudanças no tempo não podem disparar avisos "Faltam X minutos" falsos.
+  if (['reset', 'adjust', 'setTotal'].includes(cmd.type)) lastRem = null;
   switch (cmd.type) {
     case 'toggle':
       timer = Cron.toggle(timer, now);
@@ -187,12 +193,11 @@ function applySettings(patch) {
   if (overlay && !overlay.isDestroyed()) {
     if ('opacity' in patch) overlay.setOpacity(s.opacity);
     if ('background' in patch) overlay.setBackgroundColor(BACKGROUNDS[s.background].bg);
+    if ('background' in patch && exam && !exam.isDestroyed()) exam.setBackgroundColor(BACKGROUNDS[s.background].bg);
     if ('position' in patch || 'size' in patch || 'displayId' in patch) placeOverlay();
-    if ('overlayVisible' in patch) {
-      if (s.overlayVisible) { placeOverlayIfOffscreen(); overlay.showInactive(); keepOnTop(); }
-      else overlay.hide();
-    }
+    if ('overlayVisible' in patch) syncOverlayVisibility();
   }
+  if ('examDisplayId' in patch && exam && !exam.isDestroyed()) placeExam();
   if ('shortcuts' in patch) registerShortcuts();
   if ('warnMin' in patch || 'critMin' in patch) {
     alertLevel = Cron.stateOf(Cron.remaining(timer, Date.now()), s.warnMin * 60000, s.critMin * 60000);
@@ -219,6 +224,15 @@ function tickAlerts() {
     if (kind && overlay && !overlay.isDestroyed()) overlay.webContents.send('alert', { kind });
   }
   alertLevel = level;
+
+  // Avisos da prova ("Faltam 30 minutos"...), só com o tempo correndo.
+  if (Cron.isRunning(timer)) {
+    const hits = Cron.crossed(lastRem, rem, s.examWarnings);
+    if (hits.length && exam && !exam.isDestroyed()) {
+      exam.webContents.send('banner', { minutes: Math.min(...hits) });
+    }
+    lastRem = rem;
+  }
 
   // No macOS o tempo também aparece na barra de menus.
   if (IS_MAC && tray) {
@@ -473,6 +487,7 @@ function buildOverlayMenu() {
     check('Bipe quando o tempo acabar', 'soundEnd'),
     check('Piscar quando o tempo acabar', 'flashOver'),
     { type: 'separator' },
+    { label: exam ? 'Fechar a tela cheia (modo prova)' : 'Abrir em tela cheia (modo prova)', click: () => command({ type: 'exam:toggle' }) },
     { label: 'Abrir o painel', click: () => showPanel() },
     { label: 'Ocultar o cronômetro', click: () => command({ type: 'overlay:hide' }) },
     { label: 'Sair', click: () => command({ type: 'quit' }) }
@@ -494,7 +509,137 @@ function onDisplaysChanged() {
   placeOverlayIfOffscreen();
   const s = settings.get();
   if (s.position !== 'custom') placeOverlay();
+  // Se o projetor/TV for desconectado e reconectado, a tela cheia volta para ele.
+  if (exam && !exam.isDestroyed()) placeExam();
+  syncOverlayVisibility();
   broadcast();
+}
+
+/** Mostra a janelinha, a não ser que esteja na mesma tela da tela cheia. */
+function syncOverlayVisibility() {
+  if (!overlay || overlay.isDestroyed()) return;
+  const s = settings.get();
+  let show = s.overlayVisible;
+  if (show && exam && !exam.isDestroyed()) {
+    const same = screen.getDisplayMatching(overlay.getBounds()).id === examTargetDisplay().id;
+    if (same) show = false;
+  }
+  if (show) {
+    placeOverlayIfOffscreen();
+    if (!overlay.isVisible()) overlay.showInactive();
+    keepOnTop();
+  } else if (overlay.isVisible()) {
+    overlay.hide();
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Tela cheia (modo prova)                                             */
+/* ------------------------------------------------------------------ */
+
+/** Monitor da tela cheia: o escolhido, ou a segunda tela (TV/projetor), ou a principal. */
+function examTargetDisplay() {
+  const all = screen.getAllDisplays();
+  const id = settings.get().examDisplayId;
+  const chosen = all.find(d => d.id === id);
+  if (chosen) return chosen;
+  const primary = screen.getPrimaryDisplay();
+  return all.find(d => d.id !== primary.id) || primary;
+}
+
+function setFull(win, on) {
+  if (IS_MAC) win.setSimpleFullScreen(on); // fica no monitor escolhido, sem criar outro "espaço"
+  else win.setFullScreen(on);
+}
+
+function placeExam() {
+  if (!exam || exam.isDestroyed()) return;
+  const d = examTargetDisplay();
+  if (screen.getDisplayMatching(exam.getBounds()).id === d.id && exam.isVisible()) return;
+  setFull(exam, false);
+  exam.setBounds(d.bounds);
+  setFull(exam, true);
+}
+
+function openExam() {
+  if (exam && !exam.isDestroyed()) { exam.show(); return; }
+  const s = settings.get();
+  const d = examTargetDisplay();
+  exam = new BrowserWindow({
+    ...d.bounds,
+    frame: false,
+    show: false,
+    backgroundColor: BACKGROUNDS[s.background].bg,
+    title: 'Cronômetro (tela cheia)',
+    autoHideMenuBar: true,
+    minimizable: false,
+    webPreferences: {
+      preload: PRELOAD,
+      contextIsolation: true,
+      sandbox: true,
+      nodeIntegration: false,
+      backgroundThrottling: false
+    }
+  });
+  if (!IS_MAC) exam.removeMenu();
+  exam.loadFile(path.join(__dirname, 'renderer', 'exam.html'));
+  exam.once('ready-to-show', () => {
+    exam.show();
+    setFull(exam, true);
+    syncOverlayVisibility();
+  });
+  exam.on('closed', () => {
+    exam = null;
+    syncOverlayVisibility();
+    broadcast();
+  });
+  broadcast();
+}
+
+function closeExam() {
+  if (exam && !exam.isDestroyed()) exam.close();
+}
+
+function confirmOnExam(message, detail, okLabel) {
+  const opts = { type: 'question', buttons: [okLabel, 'Cancelar'], defaultId: 1, cancelId: 1, message, detail, noLink: true };
+  const res = exam && !exam.isDestroyed() ? dialog.showMessageBoxSync(exam, opts) : dialog.showMessageBoxSync(opts);
+  return res === 0;
+}
+
+function buildExamMenu() {
+  const running = Cron.isRunning(timer);
+  const started = running || timer.accMs > 0;
+  return Menu.buildFromTemplate([
+    { label: running ? 'Pausar prova' : (started ? 'Retomar prova' : 'Iniciar prova'), click: () => command({ type: 'toggle' }) },
+    { type: 'separator' },
+    { label: '+1 minuto', click: () => command({ type: 'adjust', deltaMin: 1 }) },
+    { label: '+5 minutos', click: () => command({ type: 'adjust', deltaMin: 5 }) },
+    { label: '-1 minuto', click: () => command({ type: 'adjust', deltaMin: -1 }) },
+    { type: 'separator' },
+    { label: 'Reiniciar...', click: () => command({ type: 'exam:reset-request' }) },
+    { label: 'Abrir o painel', click: () => showPanel() },
+    { type: 'separator' },
+    { label: 'Sair da tela cheia', click: () => closeExam() }
+  ]);
+}
+
+function handleExam(cmd) {
+  switch (cmd.type) {
+    case 'exam:open': openExam(); return true;
+    case 'exam:close': closeExam(); return true;
+    case 'exam:toggle': if (exam && !exam.isDestroyed()) closeExam(); else openExam(); return true;
+    case 'exam:menu':
+      if (exam && !exam.isDestroyed()) buildExamMenu().popup({ window: exam });
+      return true;
+    case 'exam:exit-request':
+      if (confirmOnExam('Sair da tela cheia?', 'O cronômetro continua contando normalmente.', 'Sair da tela cheia')) closeExam();
+      return true;
+    case 'exam:reset-request':
+      if (confirmOnExam('Reiniciar o cronômetro?', 'O tempo decorrido volta a zero e a contagem para.', 'Reiniciar')) command({ type: 'reset' });
+      return true;
+    default:
+      return false;
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -530,6 +675,7 @@ function updateTrayMenu() {
     { label: '-1 minuto', click: () => command({ type: 'adjust', deltaMin: -1 }) },
     { type: 'separator' },
     { label: s.overlayVisible ? 'Ocultar o cronômetro do canto' : 'Mostrar o cronômetro do canto', click: () => command({ type: 'overlay:toggle' }) },
+    { label: exam ? 'Fechar a tela cheia (modo prova)' : 'Abrir em tela cheia (modo prova)', click: () => command({ type: 'exam:toggle' }) },
     { type: 'separator' },
     { label: 'Sair', click: () => command({ type: 'quit' }) }
   ]));
@@ -604,9 +750,34 @@ function runSmokeTest() {
       if (Cron.isRunning(timer)) errors.push('duplo clique não pausou');
       command({ type: 'settings', patch: { color: 'azul' } });
       await wait(400);
+
+      // Tela cheia (modo prova): abre, mostra título e tempo, recebe aviso.
+      command({ type: 'settings', patch: { examTitle: 'Teste automático' } });
+      command({ type: 'exam:open' });
+      await new Promise(res => {
+        const t0 = Date.now();
+        const poll = () => (exam && !exam.webContents.isLoading()) || Date.now() - t0 > 8000 ? res() : setTimeout(poll, 100);
+        poll();
+      });
+      watch(exam, 'tela cheia');
+      await wait(1500);
+      const ex = await exam.webContents.executeJavaScript(
+        '({ big: document.getElementById("big").textContent, title: document.getElementById("title").textContent, state: document.getElementById("state").textContent })');
+      if (!/^\d{2}:\d{2}$/.test(ex.big)) errors.push(`tela cheia mostrou "${ex.big}"`);
+      if (ex.title !== 'Teste automático') errors.push(`título da tela cheia: "${ex.title}"`);
+      if (ex.state !== 'PAUSADO') errors.push(`tela cheia não indicou pausa: "${ex.state}"`);
+      try { buildExamMenu(); } catch (err) { errors.push('menu da prova: ' + err.message); }
+      exam.webContents.send('banner', { minutes: 15 });
+      await wait(900);
+      const banner = await exam.webContents.executeJavaScript('document.getElementById("banner").textContent');
+      if (banner !== 'FALTAM 15 MINUTOS') errors.push(`aviso da prova: "${banner}"`);
+      fs.writeFileSync(path.join(outDir, 'tela-cheia.png'), (await exam.webContents.capturePage()).toPNG());
+      closeExam();
+      await wait(600);
+      if (exam) errors.push('tela cheia não fechou');
       fs.writeFileSync(path.join(outDir, 'painel.png'), (await panel.webContents.capturePage()).toPNG());
       fs.writeFileSync(path.join(outDir, 'overlay.png'), (await overlay.webContents.capturePage()).toPNG());
-      const report = { ok: errors.length === 0, overlay: big, panel: panelBig, errors, platform: process.platform, electron: process.versions.electron };
+      const report = { ok: errors.length === 0, overlay: big, panel: panelBig, exam: ex.big, errors, platform: process.platform, electron: process.versions.electron };
       fs.writeFileSync(path.join(outDir, 'report.json'), JSON.stringify(report, null, 2));
       console.log('SMOKE:', JSON.stringify(report));
       clearTimeout(guard);

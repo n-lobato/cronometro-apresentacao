@@ -9,8 +9,11 @@ Cronômetro que fica no canto da tela, por cima da apresentação em tela cheia.
 
 Na primeira abertura o Windows e o macOS mostram um aviso de segurança, porque o programa não tem assinatura digital paga. Veja no [README](https://github.com/n-lobato/cronometro-apresentacao#primeira-abertura) como liberar.
 
-**Novidades da v1.1.1**
+**Novidades da v1.2.0: tela cheia (modo prova)**
 
-* Correção: se o limite do laranja for maior que o do amarelo, os valores são trocados automaticamente, e a fase amarela não some mais
-* Correção: os botões de +1 minuto (painel, janelinha, bandeja e atalho) respeitam o limite de 600 minutos
-* Builds reproduzíveis: versões das dependências travadas em lockfile
+* Tela cheia para TV ou projetor, com tempo restante enorme, decorrido, tempo total, término previsto e hora de Brasília
+* Título editável no topo (ex.: "Avaliação de História, 2º ano")
+* Avisos "Faltam X minutos" nos tempos que você escolher
+* "TEMPO ESGOTADO" no fim, sem contar o excesso, e "PAUSADO" bem visível
+* Proteção contra pausa acidental: cliques não fazem nada; controle pelo menu do botão direito; Esc pede confirmação
+* Escolha automática da segunda tela e volta sozinha se o cabo da TV for reconectado

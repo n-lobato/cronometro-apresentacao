@@ -6,5 +6,6 @@ contextBridge.exposeInMainWorld('cron', {
   getState: () => ipcRenderer.invoke('get-state'),
   send: (cmd) => ipcRenderer.send('command', cmd),
   onState: (cb) => ipcRenderer.on('state', (_e, s) => cb(s)),
-  onAlert: (cb) => ipcRenderer.on('alert', (_e, a) => cb(a))
+  onAlert: (cb) => ipcRenderer.on('alert', (_e, a) => cb(a)),
+  onBanner: (cb) => ipcRenderer.on('banner', (_e, b) => cb(b))
 });

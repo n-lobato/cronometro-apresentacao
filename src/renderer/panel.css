@@ -35,6 +35,10 @@ label.check { margin: 8px 0; cursor: pointer; }
 .sub { color: #c3c9d4; min-width: 64px; }
 input[type=number], select { padding: 7px 9px; border-radius: 8px; border: 1px solid #2b3240; background: #0f1218; color: var(--txt); font: inherit; }
 input[type=number] { width: 78px; }
+input[type=text] { padding: 7px 9px; border-radius: 8px; border: 1px solid #2b3240; background: #0f1218; color: var(--txt); font: inherit; flex: 1; min-width: 0; }
+label.grow { flex: 1; flex-wrap: wrap; }
+label.grow input { width: 100%; flex-basis: 100%; }
+.exam-card { border-color: #2a4f9e; }
 input[type=range] { width: 170px; accent-color: var(--ok); }
 input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--ok); }
 select { min-width: 200px; }

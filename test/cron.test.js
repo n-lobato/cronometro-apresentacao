@@ -94,3 +94,25 @@ test('ajustes de +1 minuto respeitam o teto de 600 minutos', () => {
   assert.equal(Cron.adjust({ ...t, totalMs: 599 * 60000 }, 60000).totalMs, 600 * 60000);
   assert.equal(Cron.adjust({ ...t, totalMs: 60000 }, -60000).totalMs, 60000);
 });
+
+test('avisos da prova disparam uma vez ao atravessar cada limite', () => {
+  const list = [30, 15, 5];
+  assert.deepEqual(Cron.crossed(30 * 60000 + 200, 30 * 60000 - 100, list), [30]);
+  assert.deepEqual(Cron.crossed(30 * 60000 - 100, 30 * 60000 - 300, list), []); // já passou
+  assert.deepEqual(Cron.crossed(16 * 60000, 4 * 60000, list), [15, 5]);        // salto (ex.: -10 min)
+  assert.deepEqual(Cron.crossed(null, 1000, list), []);                         // sem leitura anterior
+  assert.deepEqual(Cron.crossed(6 * 60000, 4 * 60000, []), []);
+});
+
+test('lista de avisos digitada pelo usuário é limpa e ordenada', () => {
+  assert.deepEqual(Cron.parseMinutesList('10, 30;30 0 700 5'), [30, 10, 5]);
+  assert.deepEqual(Cron.parseMinutesList(''), []);
+  assert.deepEqual(Cron.parseMinutesList([1, '2', 2.5, -1]), [2, 1]);
+});
+
+test('título da prova é limitado e sem quebras de linha', () => {
+  const s = sanitize({ examTitle: 'Prova\nfinal' + 'x'.repeat(200) });
+  assert.ok(!s.examTitle.includes('\n'));
+  assert.equal(s.examTitle.length, 120);
+  assert.deepEqual(sanitize({}).examWarnings, [30, 15, 5]);
+});
