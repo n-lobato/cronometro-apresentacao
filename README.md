@@ -103,7 +103,7 @@ docs/                  versão para navegador
 extras/                versão em PowerShell para Windows
 ```
 
-Os instaladores dos três sistemas são gerados pelo GitHub Actions e anexados automaticamente quando uma release é publicada no GitHub (ou quando uma tag `v*` é enviada).
+Os instaladores dos três sistemas são gerados pelo GitHub Actions e anexados automaticamente quando uma release é publicada na página do GitHub.
 
 ## Licença
 
