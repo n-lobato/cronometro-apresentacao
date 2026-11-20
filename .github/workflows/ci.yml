@@ -28,6 +28,14 @@ jobs:
       - name: Testes unitários
         run: npm test
 
+      - name: Teste da versão para navegador (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a npx electron test/web-limits.js --no-sandbox
+
+      - name: Teste da versão para navegador (Windows/macOS)
+        if: runner.os != 'Linux'
+        run: npx electron test/web-limits.js
+
       - name: Teste de fumaça no Linux (abre o app numa tela virtual)
         if: runner.os == 'Linux'
         run: xvfb-run -a npx electron . --smoke-test --no-sandbox

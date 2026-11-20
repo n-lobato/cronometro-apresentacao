@@ -101,6 +101,7 @@ Requer Node.js 20 ou mais recente. Ao mudar dependências no `package.json`, rod
 npm ci             # instala exatamente as versões do package-lock.json
 npm start          # abre o app
 npm test           # testes unitários
+npm run test:web   # testa os limites da versão para navegador (docs/)
 npm run smoke      # teste de fumaça (abre, conta 2 s, salva capturas em smoke-output/)
 npm run dist       # gera o instalador do sistema atual em dist/
 ```

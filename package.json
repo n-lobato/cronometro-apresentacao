@@ -16,7 +16,8 @@
     "test": "node --test test/cron.test.js",
     "smoke": "electron . --smoke-test",
     "dist": "electron-builder --publish never",
-    "icons": "node scripts/make-icons.js"
+    "icons": "node scripts/make-icons.js",
+    "test:web": "electron test/web-limits.js"
   },
   "devDependencies": {
     "electron": "^38.0.0",
