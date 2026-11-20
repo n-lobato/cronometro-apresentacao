@@ -81,10 +81,10 @@ Se outro programa já usar algum desses atalhos, ele aparece riscado no painel. 
 
 ## Para desenvolvedores
 
-Requer Node.js 20 ou mais recente.
+Requer Node.js 20 ou mais recente. Ao mudar dependências no `package.json`, rode o fluxo **Atualizar lockfile** na aba Actions.
 
 ```bash
-npm install
+npm ci             # instala exatamente as versões do package-lock.json
 npm start          # abre o app
 npm test           # testes unitários
 npm run smoke      # teste de fumaça (abre, conta 2 s, salva capturas em smoke-output/)
