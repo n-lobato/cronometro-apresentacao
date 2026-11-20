@@ -90,6 +90,8 @@ function sanitize(input) {
   out.totalMin = clamp(out.totalMin, 1, 600);
   out.warnMin = clamp(out.warnMin, 0, 600);
   out.critMin = clamp(out.critMin, 0, 600);
+  // Limites invertidos: o maior vira amarelo (alerta) e o menor, laranja.
+  if (out.critMin > out.warnMin) [out.warnMin, out.critMin] = [out.critMin, out.warnMin];
   out.opacity = clamp(out.opacity, 0.3, 1);
   return out;
 }

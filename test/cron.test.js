@@ -53,7 +53,7 @@ test('estados de cor', () => {
 });
 
 test('configurações inválidas voltam ao padrão', () => {
-  const s = sanitize({ totalMin: 'abc', position: 'meio', size: 'xl', opacity: 9, shortcuts: 0, warnMin: -3, extra: 1 });
+  const s = sanitize({ totalMin: 'abc', position: 'meio', size: 'xl', opacity: 9, shortcuts: 0, warnMin: -3, critMin: -1, extra: 1 });
   assert.equal(s.totalMin, DEFAULTS.totalMin);
   assert.equal(s.position, DEFAULTS.position);
   assert.equal(s.size, DEFAULTS.size);
@@ -76,4 +76,21 @@ test('cores e fundos são validados', () => {
   assert.equal(sanitize({ color: '#fff' }).color, DEFAULTS.color);
   assert.equal(sanitize({ background: 'claro' }).background, 'claro');
   assert.equal(sanitize({ background: 'neon' }).background, DEFAULTS.background);
+});
+
+test('laranja maior que amarelo não apaga a fase amarela', () => {
+  // amarelo aos 5 min, laranja configurado (por engano) aos 10 min: trata como 10/5
+  assert.equal(Cron.stateOf(11 * 60000, 5 * 60000, 10 * 60000), 'ok');
+  assert.equal(Cron.stateOf(8 * 60000, 5 * 60000, 10 * 60000), 'warn');
+  assert.equal(Cron.stateOf(4 * 60000, 5 * 60000, 10 * 60000), 'crit');
+  const s = sanitize({ warnMin: 5, critMin: 10 });
+  assert.deepEqual([s.warnMin, s.critMin], [10, 5]);
+  assert.equal(sanitize({ warnMin: 5, critMin: 2 }).critMin, 2);
+});
+
+test('ajustes de +1 minuto respeitam o teto de 600 minutos', () => {
+  const t = { totalMs: 600 * 60000, accMs: 0, startedAt: null };
+  assert.equal(Cron.adjust(t, 60000).totalMs, 600 * 60000);
+  assert.equal(Cron.adjust({ ...t, totalMs: 599 * 60000 }, 60000).totalMs, 600 * 60000);
+  assert.equal(Cron.adjust({ ...t, totalMs: 60000 }, -60000).totalMs, 60000);
 });

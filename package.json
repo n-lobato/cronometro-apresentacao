@@ -1,7 +1,7 @@
 {
   "name": "cronometro-apresentacao",
   "productName": "Cronômetro de Apresentação",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Cronômetro que fica no canto da tela, por cima da apresentação em tela cheia (PowerPoint, PDF, Keynote, Impress, Google Slides).",
   "main": "src/main.js",
   "author": "n-lobato",

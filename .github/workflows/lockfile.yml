@@ -1,0 +1,36 @@
+name: Atualizar lockfile
+
+# Gera ou atualiza o package-lock.json. Rode manualmente (aba Actions >
+# "Atualizar lockfile" > Run workflow) sempre que mudar dependências no
+# package.json. Os builds usam "npm ci", que instala exatamente o que está aqui.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  lock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Gerar package-lock.json
+        run: npm install --package-lock-only --no-audit --no-fund
+
+      - name: Salvar no repositório
+        run: |
+          if git diff --quiet --exit-code -- package-lock.json 2>/dev/null && git ls-files --error-unmatch package-lock.json >/dev/null 2>&1; then
+            echo "Lockfile já está atualizado."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          git commit -m "Atualiza package-lock.json"
+          git push

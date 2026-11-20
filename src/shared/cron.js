@@ -32,9 +32,15 @@
     return (over ? '+' : '') + String(m).padStart(2, '0') + ':' + String(r).padStart(2, '0');
   }
 
-  /** Estado visual: ok, warn (amarelo), crit (último minuto) ou over (estourado). */
+  const MIN_TOTAL_MS = 60000;        // 1 minuto
+  const MAX_TOTAL_MS = 600 * 60000;  // 600 minutos (mesmo limite do campo de duração)
+
+  /** Estado visual: ok, warn (amarelo), crit (laranja) ou over (estourado). */
   function stateOf(remMs, warnMs, critMs) {
     if (critMs == null) critMs = 60000;
+    // Se os limites vierem invertidos, o maior vale como amarelo e o menor
+    // como laranja. Sem isso a fase amarela nunca apareceria.
+    if (critMs > warnMs) { const tmp = critMs; critMs = warnMs; warnMs = tmp; }
     if (remMs < 0) return 'over';
     if (remMs <= critMs) return 'crit';
     if (remMs <= warnMs) return 'warn';
@@ -52,12 +58,14 @@
     return { ...timer, accMs: 0, startedAt: null };
   }
 
-  function adjust(timer, deltaMs, minMs) {
-    if (minMs == null) minMs = 60000;
-    return { ...timer, totalMs: Math.max(minMs, timer.totalMs + deltaMs) };
+  /** Soma ou subtrai tempo do total, sempre entre 1 e 600 minutos. */
+  function adjust(timer, deltaMs, minMs, maxMs) {
+    if (minMs == null) minMs = MIN_TOTAL_MS;
+    if (maxMs == null) maxMs = MAX_TOTAL_MS;
+    return { ...timer, totalMs: Math.min(maxMs, Math.max(minMs, timer.totalMs + deltaMs)) };
   }
 
-  const api = { elapsed, remaining, isRunning, format, stateOf, toggle, reset, adjust };
+  const api = { elapsed, remaining, isRunning, format, stateOf, toggle, reset, adjust, MIN_TOTAL_MS, MAX_TOTAL_MS };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Cron = api;
